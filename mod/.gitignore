@@ -1,0 +1,24 @@
+# Gradle / 构建产物
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+
+# 运行期目录（MDG 的 run/）
+run/
+runs/
+
+# 模组运行期生成（见 SPEC §3：token 写在游戏实例 config/cipbridge/，不在此）
+config/
+
+# macOS
+.DS_Store

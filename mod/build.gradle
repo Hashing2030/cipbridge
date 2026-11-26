@@ -1,0 +1,67 @@
+// CIP Bridge — NeoForge 1.21.1 客户端模组构建脚本
+// 规范：cipbridge/SPEC.md（冻结 v1.1）§2 硬约束 / §5 工程结构
+// 约束：零第三方库、不加 mixin、不注册方块/物品/实体。构建侧只依赖 ModDevGradle（构建插件，不进模组运行时）。
+
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev' version '2.0.148'
+}
+
+version = project.mod_version
+group = project.mod_group_id
+
+base {
+    archivesName = project.mod_id
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    // 产物需可在 JDK 21 上运行
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+neoForge {
+    version = project.neoforge_version
+
+    runs {
+        client {
+            client()
+        }
+        // 本模组为 CLIENT 侧；data/server 运行配置本卡不需要，为保持骨架最小不声明。
+    }
+
+    mods {
+        "${project.mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+// 统一编译器参数；避免引入任何第三方编译期注解处理器
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-Xlint:all', '-Xlint:-processing', '-Xlint:-serial']
+}
+
+tasks.withType(ProcessResources).configureEach {
+    // 资源里不含需替换的占位符，禁用 expand，避免 ${...} 被 Groovy 模板吃掉
+    filteringCharset = 'UTF-8'
+}
+
+tasks.named('jar', Jar) {
+    // dev/ 包只用于 headless 冒烟（HttpApiSmoke），不随产物发布
+    exclude 'dev/cip/bridge/dev/**'
+    manifest {
+        attributes([
+                'Specification-Title'     : project.mod_id,
+                'Specification-Vendor'    : project.mod_group_id,
+                'Specification-Version'   : '1',
+                'Implementation-Title'    : project.name,
+                'Implementation-Version'  : project.version,
+                'Implementation-Vendor'   : project.mod_group_id
+        ])
+    }
+}
